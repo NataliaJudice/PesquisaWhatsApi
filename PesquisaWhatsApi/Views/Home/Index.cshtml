@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Início";
+}
+
+<div class="max-w-3xl mx-auto text-center py-16">
+    <span class="inline-flex w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 items-center justify-center mb-5">
+        <i data-lucide="message-circle-more" class="w-7 h-7"></i>
+    </span>
+    <h1 class="text-2xl font-semibold text-white">Chatbot Studio</h1>
+    <p class="text-sm text-gray-500 mt-2">Monte o roteiro da conversa, teste no simulador e publique no WhatsApp.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 text-left">
+        <a asp-controller="Fluxo" asp-action="Index" class="bg-[#11141a] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition">
+            <i data-lucide="workflow" class="w-5 h-5 text-emerald-400"></i>
+            <p class="text-sm font-medium text-white mt-3">Meus fluxos</p>
+            <p class="text-xs text-gray-500 mt-1">Criar e editar roteiros</p>
+        </a>
+        <a asp-controller="Simulador" asp-action="Index" class="bg-[#11141a] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition">
+            <i data-lucide="play-circle" class="w-5 h-5 text-sky-400"></i>
+            <p class="text-sm font-medium text-white mt-3">Simulador</p>
+            <p class="text-xs text-gray-500 mt-1">Testar a conversa</p>
+        </a>
+        <a asp-controller="WhatsApp" asp-action="Index" class="bg-[#11141a] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition">
+            <i data-lucide="smartphone" class="w-5 h-5 text-amber-400"></i>
+            <p class="text-sm font-medium text-white mt-3">WhatsApp</p>
+            <p class="text-xs text-gray-500 mt-1">Publicar o bot</p>
+        </a>
+    </div>
+</div>

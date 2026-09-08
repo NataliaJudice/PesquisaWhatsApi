@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Erro";
+}
+
+<div class="max-w-lg mx-auto text-center py-20">
+    <span class="inline-flex w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-400 items-center justify-center mb-5">
+        <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+    </span>
+    <h1 class="text-xl font-semibold text-white">Algo deu errado</h1>
+    <p class="text-sm text-gray-500 mt-2">Tente novamente. Se o erro continuar, confira o log da aplicação.</p>
+    <a asp-controller="Fluxo" asp-action="Index" class="inline-flex items-center gap-2 mt-6 text-xs font-semibold px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0d0f13] transition">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Voltar para os fluxos
+    </a>
+</div>

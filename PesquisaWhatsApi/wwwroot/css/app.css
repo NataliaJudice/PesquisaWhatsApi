@@ -1,0 +1,82 @@
+/* Estilos compartilhados pelo Studio (o resto vem do Tailwind via CDN) */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2a2f3a;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3b414f;
+    background-clip: content-box;
+}
+
+/* Fundo quadriculado do canvas do construtor */
+.canvas-grid {
+    background-color: #0f1115;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 0),
+        radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 0);
+    background-size: 24px 24px;
+    background-position: 0 0, 12px 12px;
+}
+
+/* Papel de parede das telas de conversa */
+.chat-wallpaper {
+    background-color: #0b141a;
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.06), transparent 45%),
+        radial-gradient(circle at 80% 60%, rgba(59, 130, 246, 0.05), transparent 45%);
+}
+
+.balao-bot {
+    border-radius: 14px 14px 14px 4px;
+}
+
+.balao-usuario {
+    border-radius: 14px 14px 4px 14px;
+}
+
+/* Três pontinhos de "digitando" */
+.digitando span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 3px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: pulseDot 1.2s infinite ease-in-out;
+}
+
+.digitando span:nth-child(2) { animation-delay: 0.2s; }
+.digitando span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulseDot {
+    0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Bloco selecionado no canvas */
+.node-ativo {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+}
+
+.node-alvo {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+}
+
+textarea, input, select {
+    font-family: inherit;
+}

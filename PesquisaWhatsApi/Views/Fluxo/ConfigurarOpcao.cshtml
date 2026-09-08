@@ -1,0 +1,55 @@
+﻿@model PesquisaWhatsApi.Models.FluxoMensagem
+@{
+    ViewData["Title"] = "Configurar opção";
+}
+
+<div class="max-w-xl mx-auto">
+    <a asp-action="Detalhes" asp-route-id="@Model.FluxoId" class="inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 transition mb-4">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Voltar para o construtor
+    </a>
+
+    <div class="bg-[#11141a] border border-white/5 rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-white/5 flex items-center gap-3">
+            <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <i data-lucide="list-tree" class="w-4 h-4"></i>
+            </span>
+            <div>
+                <h1 class="text-sm font-semibold text-white">Novo caminho do menu</h1>
+                <p class="text-[11px] text-gray-500">Bloco #@Model.Id</p>
+            </div>
+        </div>
+
+        <div class="p-5 space-y-5">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1.5">Mensagem que o cliente recebe</p>
+                <div class="bg-[#0f1218] border border-white/5 rounded-lg p-3 text-xs text-gray-300 whitespace-pre-wrap leading-relaxed">@Model.Mensagem?.Conteudo</div>
+            </div>
+
+            <form asp-action="SalvarOpcao" method="post" class="space-y-4">
+                <input type="hidden" name="noMenuId" value="@Model.Id" />
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-gray-600 block mb-1.5">O que o cliente digita</label>
+                    <input type="text" name="palavraChave" required placeholder="Ex: 1"
+                           class="w-full bg-[#161a22] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-500/50" />
+                    <p class="text-[10px] text-gray-600 mt-1.5">Não diferencia maiúsculas de minúsculas.</p>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-gray-600 block mb-1.5">Resposta do bot</label>
+                    <textarea name="conteudoResposta" rows="4" required placeholder="Texto que o robô envia se o cliente escolher essa opção..."
+                              class="w-full bg-[#161a22] border border-white/10 rounded-lg p-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 resize-none leading-relaxed"></textarea>
+                    <p class="text-[10px] text-gray-600 mt-1.5">Um bloco novo será criado com esse texto.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <a asp-action="Detalhes" asp-route-id="@Model.FluxoId"
+                       class="text-xs px-4 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-gray-300 transition">Cancelar</a>
+                    <button type="submit" class="text-xs font-semibold px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0d0f13] transition">
+                        Salvar caminho
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

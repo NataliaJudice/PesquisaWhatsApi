@@ -1,0 +1,125 @@
+﻿@model IEnumerable<PesquisaWhatsApi.Models.Fluxos>
+@{
+    ViewData["Title"] = "Meus fluxos";
+    var passos = ViewBag.Passos as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var conversas = ViewBag.Conversas as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<div class="max-w-6xl mx-auto">
+
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl font-semibold text-white">Meus fluxos de atendimento</h1>
+            <p class="text-sm text-gray-500 mt-1">Cada fluxo é um roteiro de conversa que o bot segue no WhatsApp.</p>
+        </div>
+
+        <form asp-action="Criar" method="post" class="flex items-center gap-2">
+            <div class="relative">
+                <i data-lucide="workflow" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"></i>
+                <input type="text" name="nome" required maxlength="80" placeholder="Nome do novo fluxo"
+                       class="w-64 bg-[#161a22] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30" />
+            </div>
+            <button type="submit" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-[#0d0f13] font-semibold text-sm px-4 py-2 rounded-lg transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Criar fluxo
+            </button>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="border border-dashed border-white/10 rounded-2xl p-16 text-center bg-[#11141a]">
+            <span class="inline-flex w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 items-center justify-center mb-4">
+                <i data-lucide="message-square-plus" class="w-7 h-7"></i>
+            </span>
+            <h2 class="text-lg font-medium text-white">Nenhum fluxo por aqui ainda</h2>
+            <p class="text-sm text-gray-500 mt-2 max-w-md mx-auto">
+                Crie o primeiro fluxo no campo acima. Ele já nasce com uma mensagem de boas-vindas
+                pronta para você editar no construtor visual.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach (var fluxo in Model)
+            {
+                var totalPassos = passos.TryGetValue(fluxo.Id, out var p) ? p : 0;
+                var totalConversas = conversas.TryGetValue(fluxo.Id, out var c) ? c : 0;
+
+                <div class="group bg-[#11141a] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition flex flex-col">
+                    <a asp-action="Detalhes" asp-route-id="@fluxo.Id" class="p-5 block flex-1">
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="git-branch" class="w-5 h-5"></i>
+                            </span>
+                            <div class="flex flex-wrap gap-1.5 justify-end">
+                                @if (fluxo.EhPadrao)
+                                {
+                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
+                                        Padrão WhatsApp
+                                    </span>
+                                }
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md @(fluxo.Status ? "bg-sky-500/10 text-sky-300 border border-sky-500/20" : "bg-white/5 text-gray-500 border border-white/10")">
+                                    @(fluxo.Status ? "Ativo" : "Inativo")
+                                </span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-base font-semibold text-white group-hover:text-emerald-300 transition truncate">@fluxo.Nome</h3>
+                        <p class="text-xs text-gray-500 mt-1">Criado em @fluxo.DataCriacao.ToLocalTime().ToString("dd/MM/yyyy")</p>
+
+                        <div class="flex items-center gap-4 mt-4 text-xs text-gray-400">
+                            <span class="inline-flex items-center gap-1.5">
+                                <i data-lucide="layers" class="w-3.5 h-3.5 text-gray-600"></i> @totalPassos passos
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <i data-lucide="users" class="w-3.5 h-3.5 text-gray-600"></i> @totalConversas conversas
+                            </span>
+                        </div>
+                    </a>
+
+                    <div class="border-t border-white/5 px-3 py-2 flex items-center gap-1">
+                        <a asp-action="Detalhes" asp-route-id="@fluxo.Id"
+                           class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md text-gray-300 hover:bg-white/5 transition" title="Abrir construtor">
+                            <i data-lucide="pencil-ruler" class="w-3.5 h-3.5"></i> Editar
+                        </a>
+                        <a asp-controller="Simulador" asp-action="Index" asp-route-fluxoId="@fluxo.Id"
+                           class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md text-gray-300 hover:bg-white/5 transition" title="Testar no simulador">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Testar
+                        </a>
+
+                        <span class="flex-1"></span>
+
+                        @if (!fluxo.EhPadrao)
+                        {
+                            <form asp-action="DefinirPadrao" method="post" class="inline">
+                                <input type="hidden" name="fluxoId" value="@fluxo.Id" />
+                                <button type="submit" title="Usar este fluxo no WhatsApp"
+                                        class="inline-flex items-center p-1.5 rounded-md text-gray-500 hover:text-emerald-300 hover:bg-white/5 transition">
+                                    <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </form>
+                        }
+
+                        <form asp-action="AlternarStatus" method="post" class="inline">
+                            <input type="hidden" name="fluxoId" value="@fluxo.Id" />
+                            <button type="submit" title="@(fluxo.Status ? "Desativar" : "Ativar")"
+                                    class="inline-flex items-center p-1.5 rounded-md text-gray-500 hover:text-sky-300 hover:bg-white/5 transition">
+                                <i data-lucide="@(fluxo.Status ? "toggle-right" : "toggle-left")" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+
+                        <form asp-action="Excluir" method="post" class="inline"
+                              onsubmit="return App.confirmarSubmit(event, 'Excluir o fluxo &quot;@fluxo.Nome&quot; e todos os passos dele?')">
+                            <input type="hidden" name="fluxoId" value="@fluxo.Id" />
+                            <button type="submit" title="Excluir fluxo"
+                                    class="inline-flex items-center p-1.5 rounded-md text-gray-500 hover:text-rose-400 hover:bg-white/5 transition">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

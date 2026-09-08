@@ -1,0 +1,395 @@
+﻿@model PesquisaWhatsApi.Models.ViewModels.PainelWhatsAppViewModel
+@{
+    ViewData["Title"] = "WhatsApp";
+}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold text-white">Conexão com o WhatsApp</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Ligue o chatbot que você montou ao seu número de WhatsApp
+                @(Model.UsaMeta ? "pela API oficial da Meta." : "pela API da Twilio.")
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-gray-400">
+                <i data-lucide="@(Model.UsaMeta ? "badge-check" : "cloud")" class="w-3.5 h-3.5"></i>
+                Provedor: @Model.Provedor
+            </span>
+            <span class="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border @(Model.Configurado ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300")">
+                <span class="w-2 h-2 rounded-full @(Model.Configurado ? "bg-emerald-400 animate-pulse" : "bg-amber-400")"></span>
+                @(Model.Configurado ? "Credenciais configuradas" : "Falta configurar as credenciais")
+            </span>
+        </div>
+    </div>
+
+    <!-- Indicadores -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-[#11141a] border border-white/5 rounded-2xl p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-600">@(Model.UsaMeta ? "Phone Number ID" : "Número do bot")</p>
+            <p class="text-sm font-mono text-gray-200 mt-2 truncate">@(string.IsNullOrWhiteSpace(Model.NumeroRemetente) ? "—" : Model.NumeroRemetente)</p>
+        </div>
+        <div class="bg-[#11141a] border border-white/5 rounded-2xl p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-600">Conversas no WhatsApp</p>
+            <p class="text-2xl font-semibold text-white mt-1">@Model.TotalConversas</p>
+        </div>
+        <div class="bg-[#11141a] border border-white/5 rounded-2xl p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-600">Em andamento</p>
+            <p class="text-2xl font-semibold text-emerald-400 mt-1">@Model.ConversasAtivas</p>
+        </div>
+        <div class="bg-[#11141a] border border-white/5 rounded-2xl p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-600">Mensagens trocadas</p>
+            <p class="text-2xl font-semibold text-white mt-1">@Model.MensagensTrocadas</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+        <!-- Passo a passo -->
+        <div class="bg-[#11141a] border border-white/5 rounded-2xl p-5 space-y-5">
+            <div class="flex items-center gap-2 text-gray-300">
+                <i data-lucide="plug-zap" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-sm font-semibold">Como ligar o bot no seu WhatsApp</h2>
+            </div>
+
+            <ol class="space-y-4">
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 shrink-0 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold flex items-center justify-center text-gray-400">1</span>
+                    <div class="min-w-0 text-xs text-gray-400 leading-relaxed">
+                        <p class="text-gray-200 font-medium mb-1">Escolha o fluxo que atende no WhatsApp</p>
+                        <form asp-controller="Fluxo" asp-action="DefinirPadrao" method="post" class="flex items-center gap-2 mt-2">
+                            <input type="hidden" name="retorno" value="whatsapp" />
+                            <select name="fluxoId" class="flex-1 bg-[#161a22] border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-emerald-500/50">
+                                @foreach (var fluxo in Model.Fluxos)
+                                {
+                                    <option value="@fluxo.Id" selected="@(Model.FluxoPadrao != null && Model.FluxoPadrao.Id == fluxo.Id)">
+                                        @fluxo.Nome @(fluxo.Status ? "" : "(inativo)")
+                                    </option>
+                                }
+                            </select>
+                            <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0d0f13] transition">Publicar</button>
+                        </form>
+                        @if (Model.FluxoPadrao == null)
+                        {
+                            <p class="text-amber-400/80 mt-2">Nenhum fluxo publicado — quem mandar mensagem não vai receber resposta.</p>
+                        }
+                        else
+                        {
+                            <p class="text-emerald-400/80 mt-2">Atendendo com: <strong>@Model.FluxoPadrao.Nome</strong></p>
+                        }
+                    </div>
+                </li>
+
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 shrink-0 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold flex items-center justify-center text-gray-400">2</span>
+                    <div class="min-w-0 text-xs text-gray-400 leading-relaxed">
+                        @if (Model.UsaMeta)
+                        {
+                            <p class="text-gray-200 font-medium mb-1">Crie o app no Meta for Developers</p>
+                            <p>
+                                Em <span class="font-mono text-gray-300">developers.facebook.com</span> › <em>Meus apps</em> ›
+                                <em>Criar app</em> › tipo <em>Empresa</em>, depois adicione o produto <strong>WhatsApp</strong>.
+                                Na tela <em>WhatsApp › Configuração da API</em> ficam o <em>Identificação do número de telefone</em>
+                                e o <em>Token de acesso</em>; a <em>Chave Secreta do App</em> está em <em>Configurações › Básico</em>.
+                            </p>
+                            <p class="mt-2">Depois rode no <strong>Terminal do Gerenciador de Pacotes</strong>:</p>
+                            <pre class="mt-2 bg-[#0f1218] border border-white/5 rounded-lg p-3 text-[11px] text-gray-400 overflow-x-auto"><code>dotnet user-secrets set "WhatsApp:Meta:PhoneNumberId" "123456789012345"
+dotnet user-secrets set "WhatsApp:Meta:AccessToken" "EAAG..."
+dotnet user-secrets set "WhatsApp:Meta:AppSecret" "chave-secreta-do-app"</code></pre>
+                            <p class="mt-2">Phone Number ID atual: <span class="font-mono text-gray-300">@Model.ContaMascarada</span></p>
+                            <p class="mt-1 text-amber-400/80">
+                                O token da tela de configuração expira em 24h — serve para testar. Para deixar rodando,
+                                gere um token permanente por um <em>usuário do sistema</em> no Business Manager.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-gray-200 font-medium mb-1">Preencha as credenciais da Twilio</p>
+                            <p>
+                                Copie o <em>Account SID</em> e o <em>Auth Token</em> do painel da Twilio e rode no
+                                <strong>Terminal do Gerenciador de Pacotes</strong>:
+                            </p>
+                            <pre class="mt-2 bg-[#0f1218] border border-white/5 rounded-lg p-3 text-[11px] text-gray-400 overflow-x-auto"><code>dotnet user-secrets set "WhatsApp:Twilio:AccountSid" "ACxxxxxxxx"
+dotnet user-secrets set "WhatsApp:Twilio:AuthToken" "seu-auth-token"</code></pre>
+                            <p class="mt-2">Conta atual: <span class="font-mono text-gray-300">@Model.ContaMascarada</span></p>
+                        }
+                    </div>
+                </li>
+
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 shrink-0 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold flex items-center justify-center text-gray-400">3</span>
+                    <div class="min-w-0 text-xs text-gray-400 leading-relaxed">
+                        <p class="text-gray-200 font-medium mb-1">Exponha a aplicação para a internet</p>
+                        <p>
+                            A Twilio precisa alcançar a sua máquina. No Visual Studio, o caminho mais curto é
+                            <strong>Depurar › Túneis de Desenvolvimento › Criar um túnel</strong>
+                            (acesso <em>Público</em>) — não precisa instalar nada.
+                        </p>
+                        <p class="mt-2">Se preferir o ngrok, a porta desta sessão é a <span class="font-mono text-gray-300">@Model.PortaLocal</span>:</p>
+                        <pre class="mt-2 bg-[#0f1218] border border-white/5 rounded-lg p-3 text-[11px] text-gray-400 overflow-x-auto"><code>ngrok http @Model.PortaLocal</code></pre>
+                        <p class="mt-2">
+                            Com o túnel no ar, recarregue esta página: o endereço do passo 4 já sai pronto com o domínio público.
+                        </p>
+                    </div>
+                </li>
+
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 shrink-0 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold flex items-center justify-center text-gray-400">4</span>
+                    <div class="min-w-0 text-xs text-gray-400 leading-relaxed">
+                        @if (Model.UsaMeta)
+                        {
+                            <p class="text-gray-200 font-medium mb-1">Cadastre o webhook no painel da Meta</p>
+                            <p>
+                                Em <em>WhatsApp › Configuração › Webhook › Editar</em>, cole a <strong>URL de callback</strong> abaixo
+                                e o <strong>token de verificação</strong>. Depois clique em <em>Verificar e salvar</em> e, em
+                                <em>Gerenciar</em>, assine o campo <span class="font-mono text-gray-300">messages</span>.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-gray-200 font-medium mb-1">Cole o webhook no console da Twilio</p>
+                            <p>Em <em>Messaging › Try it out › WhatsApp Sandbox Settings</em>, campo "When a message comes in" (método POST):</p>
+                        }
+
+                        <div class="mt-2 flex items-center gap-2">
+                            <input type="text" readonly value="@Model.UrlWebhook" id="urlWebhook"
+                                   class="flex-1 bg-[#0f1218] border border-white/10 rounded-lg px-3 py-2 text-[11px] font-mono text-emerald-300 focus:outline-none" />
+                            <button type="button" data-copiar="#urlWebhook" class="shrink-0 px-3 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-gray-300 text-xs transition">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
+                        @if (Model.UsaMeta)
+                        {
+                            <div class="mt-2 flex items-center gap-2">
+                                <input type="text" readonly value="@Model.VerifyToken" id="verifyToken"
+                                       class="flex-1 bg-[#0f1218] border border-white/10 rounded-lg px-3 py-2 text-[11px] font-mono text-sky-300 focus:outline-none" />
+                                <button type="button" data-copiar="#verifyToken" class="shrink-0 px-3 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-gray-300 text-xs transition">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                            <p class="mt-1.5 text-[10px] text-gray-600">
+                                Esse é o <strong>token de verificação</strong> (campo de baixo no painel da Meta). Ele fica em
+                                <span class="font-mono">WhatsApp:Meta:VerifyToken</span> — pode trocar por qualquer palavra sua.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="mt-2 flex items-center gap-2">
+                                <input type="text" readonly value="@Model.UrlStatus" id="urlStatus"
+                                       class="flex-1 bg-[#0f1218] border border-white/10 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-500 focus:outline-none" />
+                                <button type="button" data-copiar="#urlStatus" class="shrink-0 px-3 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-gray-300 text-xs transition">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                            <p class="mt-1.5 text-[10px] text-gray-600">O segundo endereço é opcional: recebe o status de entrega das mensagens.</p>
+                        }
+
+                        @if (Model.EhLocalhost)
+                        {
+                            <p class="mt-2 text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                                Este endereço é local — a Twilio não consegue chegar nele. Abra o túnel do passo 3
+                                e recarregue esta página (ou preencha <span class="font-mono">WhatsApp:UrlPublicaWebhook</span>)
+                                para o endereço público aparecer aqui.
+                            </p>
+                        }
+                    </div>
+                </li>
+
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 shrink-0 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold flex items-center justify-center text-gray-400">5</span>
+                    <div class="min-w-0 text-xs text-gray-400 leading-relaxed">
+                        <p class="text-gray-200 font-medium mb-1">Mande uma mensagem para o número do bot</p>
+                        @if (Model.UsaMeta)
+                        {
+                            <p>
+                                Enquanto o app estiver em modo de desenvolvimento, só números cadastrados conversam com ele:
+                                em <em>WhatsApp › Configuração da API</em>, campo <em>Para</em>, clique em
+                                <em>Gerenciar lista de números de telefone</em> e adicione o seu (ele recebe um código por WhatsApp).
+                                Depois é só mandar mensagem para o número de teste da Meta.
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                No sandbox, cada celular precisa entrar uma vez enviando
+                                <span class="font-mono text-gray-300">join &lt;código&gt;</span> para o número da Twilio.
+                                Depois disso, qualquer mensagem cai no seu fluxo.
+                            </p>
+                        }
+                    </div>
+                </li>
+            </ol>
+
+            @if (!Model.ValidacaoAssinatura)
+            {
+                <p class="text-[11px] text-amber-400/80 border-t border-white/5 pt-3">
+                    A validação de assinatura está desligada (padrão em desenvolvimento). Ligue
+                    <span class="font-mono">ValidarAssinatura</span> em produção para aceitar só chamadas da Twilio.
+                </p>
+            }
+        </div>
+
+        <!-- Teste de envio + conversas -->
+        <div class="space-y-6">
+
+            <div class="bg-[#11141a] border border-white/5 rounded-2xl p-5">
+                <div class="flex items-center gap-2 text-gray-300 mb-4">
+                    <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i>
+                    <h2 class="text-sm font-semibold">Enviar mensagem de teste</h2>
+                </div>
+
+                <form asp-action="EnviarTeste" method="post" class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-gray-600 block mb-1.5">Número de destino (com DDI)</label>
+                        <input type="text" name="telefone" required placeholder="5524999999999"
+                               class="w-full bg-[#161a22] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-500/50" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-gray-600 block mb-1.5">Mensagem</label>
+                        <input type="text" name="mensagem" value="Teste de conexão do chatbot ✅"
+                               class="w-full bg-[#161a22] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/50" />
+                    </div>
+                    <button type="submit" @(Model.Configurado ? "" : "disabled")
+                            class="w-full inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-[#0d0f13] font-semibold text-sm px-4 py-2.5 rounded-lg transition">
+                        <i data-lucide="send-horizontal" class="w-4 h-4"></i> Enviar teste
+                    </button>
+                    @if (!Model.Configurado)
+                    {
+                        <p class="text-[11px] text-gray-600 text-center">Preencha as credenciais para habilitar o envio.</p>
+                    }
+                </form>
+            </div>
+
+            <div class="bg-[#11141a] border border-white/5 rounded-2xl overflow-hidden">
+                <div class="flex items-center gap-2 text-gray-300 p-5 pb-3">
+                    <i data-lucide="messages-square" class="w-4 h-4 text-emerald-400"></i>
+                    <h2 class="text-sm font-semibold">Conversas recentes</h2>
+                </div>
+
+                @if (!Model.Conversas.Any())
+                {
+                    <p class="text-xs text-gray-600 px-5 pb-5">Nenhuma conversa ainda. Assim que alguém escrever para o bot, ela aparece aqui.</p>
+                }
+                else
+                {
+                    <div class="divide-y divide-white/5 max-h-[420px] overflow-y-auto">
+                        @foreach (var conversa in Model.Conversas)
+                        {
+                            <div class="px-5 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition">
+                                <span class="w-9 h-9 shrink-0 rounded-full @(conversa.Canal == "whatsapp" ? "bg-emerald-500/10 text-emerald-400" : "bg-sky-500/10 text-sky-400") flex items-center justify-center">
+                                    <i data-lucide="@(conversa.Canal == "whatsapp" ? "smartphone" : "monitor-play")" class="w-4 h-4"></i>
+                                </span>
+
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-gray-200 truncate">
+                                        @(string.IsNullOrWhiteSpace(conversa.NomeContato) ? conversa.Telefone : conversa.NomeContato)
+                                        <span class="text-gray-600 font-normal">· @conversa.FluxoNome</span>
+                                    </p>
+                                    <p class="text-[11px] text-gray-600 truncate">
+                                        @conversa.Protocolo · @conversa.TotalMensagens msg · @conversa.DataUltimaInteracao.ToLocalTime().ToString("dd/MM HH:mm")
+                                    </p>
+                                </div>
+
+                                <span class="shrink-0 text-[10px] px-2 py-1 rounded-md @(conversa.Finalizada ? "bg-white/5 text-gray-500" : "bg-emerald-500/10 text-emerald-300")">
+                                    @(conversa.Finalizada ? "encerrada" : "ativa")
+                                </span>
+
+                                <button type="button" data-historico="@conversa.Id"
+                                        class="shrink-0 p-1.5 rounded-md text-gray-600 hover:text-gray-200 hover:bg-white/5 transition" title="Ver histórico">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do histórico -->
+<div id="modalHistorico" class="hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+    <div class="bg-[#11141a] border border-white/10 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
+        <div class="h-14 shrink-0 px-5 flex items-center justify-between border-b border-white/5">
+            <div class="min-w-0">
+                <p id="histTitulo" class="text-sm font-semibold text-white truncate">Histórico</p>
+                <p id="histSub" class="text-[11px] text-gray-500 truncate"></p>
+            </div>
+            <button type="button" id="btnFecharHistorico" class="text-gray-600 hover:text-gray-200 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div id="histCorpo" class="flex-1 overflow-y-auto p-5 space-y-2 chat-wallpaper"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            "use strict";
+
+            document.querySelectorAll("[data-copiar]").forEach(botao => {
+                botao.addEventListener("click", async function () {
+                    const campo = document.querySelector(botao.getAttribute("data-copiar"));
+                    if (!campo) return;
+
+                    try {
+                        await navigator.clipboard.writeText(campo.value);
+                        App.toast("URL copiada.", "sucesso");
+                    } catch {
+                        campo.select();
+                        document.execCommand("copy");
+                        App.toast("URL copiada.", "sucesso");
+                    }
+                });
+            });
+
+            const modal = document.getElementById("modalHistorico");
+            const corpo = document.getElementById("histCorpo");
+
+            function escapar(texto) {
+                const div = document.createElement("div");
+                div.textContent = texto || "";
+                return div.innerHTML;
+            }
+
+            document.querySelectorAll("[data-historico]").forEach(botao => {
+                botao.addEventListener("click", async function () {
+                    const id = botao.getAttribute("data-historico");
+
+                    try {
+                        const resposta = await fetch("/WhatsApp/Historico?conversaId=" + id).then(r => r.json());
+
+                        document.getElementById("histTitulo").textContent = resposta.contato || resposta.telefone;
+                        document.getElementById("histSub").textContent = "Protocolo " + resposta.protocolo;
+
+                        corpo.innerHTML = resposta.mensagens.length
+                            ? resposta.mensagens.map(m => {
+                                const daEntrada = m.direcao === "entrada";
+                                return '<div class="flex ' + (daEntrada ? "justify-end" : "justify-start") + '">' +
+                                    '<div class="' + (daEntrada ? "balao-usuario bg-[#005c4b] text-gray-50" : "balao-bot bg-[#202c33] text-gray-100") +
+                                    ' text-sm px-3.5 py-2 max-w-[75%]"><div class="leading-relaxed break-words whitespace-pre-wrap">' +
+                                    escapar(m.conteudo) + '</div><div class="text-[10px] opacity-50 text-right mt-1">' + escapar(m.data) + "</div></div></div>";
+                            }).join("")
+                            : '<p class="text-xs text-gray-600 text-center py-8">Sem mensagens registradas.</p>';
+
+                        modal.classList.remove("hidden");
+                    } catch (erro) {
+                        console.error(erro);
+                        App.toast("Não consegui carregar o histórico.", "erro");
+                    }
+                });
+            });
+
+            function fechar() { modal.classList.add("hidden"); }
+
+            document.getElementById("btnFecharHistorico").addEventListener("click", fechar);
+            modal.addEventListener("click", e => { if (e.target === modal) fechar(); });
+            document.addEventListener("keydown", e => { if (e.key === "Escape") fechar(); });
+        })();
+    </script>
+}
